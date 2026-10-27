@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>송금 VOC 문제 발굴 Agent</title>
+<style>
+:root{--bg:#fafaf8;--fg:#1c1c1a;--mut:#6b6b66;--card:#fff;--line:#e2e1db;--acc:#1f5fbf;--ok:#1a7f4b;--warn:#a8641a;--chip:#eef1f6}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--fg:#ecebe6;--mut:#9a9992;--card:#202020;--line:#35352f;--acc:#7aa7ee;--ok:#5cc58b;--warn:#e0a45a;--chip:#2a2e36}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,"Malgun Gothic",sans-serif}
+header{padding:24px 16px 8px;max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 6px}
+.sub{color:var(--mut);font-size:13px}
+nav{max-width:1100px;margin:12px auto 0;padding:0 16px;display:flex;gap:6px;flex-wrap:wrap}
+nav button{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:inherit;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{max-width:1100px;margin:0 auto;padding:12px 16px 48px}
+section{display:none}section.on{display:block}
+.note{color:var(--mut);font-size:13px;margin:4px 0 12px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.tools input,.tools select{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--chip);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.chip{display:inline-block;background:var(--chip);border-radius:6px;padding:1px 8px;font-size:12.5px;margin:1px 2px 1px 0;white-space:nowrap}
+.pass{color:var(--ok);font-weight:600}
+.need{color:var(--warn)}
+h2{font-size:17px;margin:22px 0 6px}
+ul{margin:4px 0;padding-left:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{font-size:24px;display:block}
+.stat span{color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>송금 VOC 문제 발굴 Agent · 결과 뷰어</h1>
+  <div class="sub">앱 리뷰 30건(App Store 15, Google Play 15)을 넣으면 송금 단계(S0~S8)별 사용자 문제를 근거 리뷰 ID와 함께 돌려주는 Claude Code 에이전트의 실행 결과입니다. 에이전트는 Claude Code에서 실행했고, 이 페이지는 그 결과 파일(개선 후 실행본)을 보여주는 뷰어입니다.</div>
+  <div class="sub" style="margin-top:4px">개인 포트폴리오 프로젝트이며 케이뱅크와 무관합니다.</div>
+</header>
+<nav role="tablist">
+  <button role="tab" data-t="t0" aria-selected="true">요약</button>
+  <button role="tab" data-t="t1" aria-selected="false">문제 목록 (03)</button>
+  <button role="tab" data-t="t2" aria-selected="false">리뷰별 분류·매핑 (01·02)</button>
+  <button role="tab" data-t="t3" aria-selected="false">검수 결과 (04)</button>
+</nav>
+<main>
+
+<section id="t0" class="on">
+  <h2>처리 흐름</h2>
+  <p class="note" style="font-size:14px;color:var(--fg)">리뷰 30건 → ① 유형 분류 → ② 송금 단계 매핑 (범위 외 분리) → ③ 문제 묶기·원인 추정 → <b>사람 검수 1</b> (채택·우선순위) → ④ 원문 대조 검수 (반려 시 재실행) → <b>사람 검수 2</b> (확정)</p>
+  <p class="note">분류·매핑·묶기·원문 대조는 AI가, 채택·우선순위·확정은 사람이 합니다. 모든 문제에는 근거 리뷰 ID가 있으며, 단계를 특정할 수 없으면 추측하지 않고 "확인 필요"로 남깁니다.</p>
+  <div class="cards">
+    <div class="stat"><b>30</b><span>분류된 리뷰 (R01~R30)</span></div>
+    <div class="stat"><b>27</b><span>매핑 표에 넣은 리뷰</span></div>
+    <div class="stat"><b>3</b><span>범위 외 (R11, R22, R26)</span></div>
+    <div class="stat"><b>15</b><span>사용자 문제 행 (03)</span></div>
+    <div class="stat"><b>15</b><span>04 판정 통과 (반려 없음)</span></div>
+  </div>
+  <h2>단계 ID별 문제 행 수 (03)</h2>
+  <div class="tw"><table id="stageSum"><thead><tr><th>단계 ID</th><th>행 수</th></tr></thead><tbody></tbody></table></div>
+  <h2>사람 검수 1 결과 (03 하단)</h2>
+  <ul>
+    <li>채택: 15개 행 전부 채택. 제외·병합 없음 (실행 요청 시 사전 지시).</li>
+    <li>우선순위: 실행 후 사람이 지정. 빈도보다 금융 서비스에서의 피해 크기를 우선함.</li>
+    <li><b>1순위</b> 송금이 끝나지 않거나 돈이 묶임 · <b>2순위</b> 한도·이용 제한 · <b>3순위</b> 지연·입력 불편</li>
+  </ul>
+  <h2>정답셋 채점 (사람이 직접 채점)</h2>
+  <ul>
+    <li>핵심 문제 5개(V1~V5): 문제 상황은 5/5 발견, 단계까지 일치는 3/5</li>
+    <li>개선 내용: 단계표에 한도·인증 예외 화면을 추가 → 한도(V2)·인증 반복(V3)은 맞게 바뀌고, 붙여넣기(V1)는 "확인 필요"로 밀림</li>
+    <li>근거 리뷰 ID 없는 문제 0건</li>
+  </ul>
+  <h2>보류 (03)</h2>
+  <div class="tw"><table><thead><tr><th>내용</th><th>사유</th></tr></thead><tbody>
+    <tr><td>R03, R07, R14, R15, R17, R28의 긍정 평가 (편리함, 빠름, 간편함 등)</td><td>문제 증상이 없는 리뷰라 문제로 묶을 수 없음</td></tr>
+    <tr><td>R27의 "앱 킬때와 이용할 때 렉, 딜레이"</td><td>증상은 있으나 단계를 특정할 수 없고, 같은 상황으로 묶을 다른 리뷰와의 연결도 원문만으로는 불명확해 별도 문제로 세우지 않음. 붙여넣기 문제 행에는 포함하지 않음</td></tr>
+    <tr><td>R13의 "통장에 묶인 내 돈"</td><td>계좌 잠김(범위 외)인지 불명확해 이체 오류 행에는 "며칠째 이체 안 됨"만 근거로 삼음</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="t1">
+  <p class="note">우선순위순 정렬 (사람 지정). 원인 가설은 모두 추정. 근거 리뷰 ID를 누르면 해당 리뷰의 분류·매핑 근거로 이동합니다.</p>
+  <div class="tools">
+    <select id="f1"><option value="">전체 단계</option></select>
+    <input id="q1" type="search" placeholder="검색 (문제 상황, 리뷰 ID…)">
+  </div>
+  <div class="tw"><table id="tb1"><thead><tr><th>우선순위</th><th>단계 ID</th><th>단계 후보 (참고)</th><th>문제 상황</th><th>근거 리뷰 ID</th><th>빈도</th><th>영향</th><th>원인 가설(추정)</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="t2">
+  <p class="note">리뷰 30건의 유형 코드(01)와 단계 매핑(02). 범위 외 3건은 02의 "범위 외" 표 기준입니다.</p>
+  <div class="tools">
+    <select id="f2"><option value="">전체 단계</option></select>
+    <select id="g2"><option value="">전체 유형 코드</option></select>
+    <input id="q2" type="search" placeholder="검색 (리뷰 ID, 근거…)">
+  </div>
+  <div class="tw"><table id="tb2"><thead><tr><th>리뷰 ID</th><th>유형 코드 (01)</th><th>판단 근거 (01)</th><th>단계 ID (02)</th><th>단계 후보 (참고)</th><th>화면 요소</th><th>매핑 근거 (02)</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="t3">
+  <p class="note">회차: 1회차 (output_run3 실행). 대조 대상: 03 채택 15행 vs voc_raw.md, transfer_flow.md, 02_mapped.md</p>
+  <div class="tw"><table id="tb3"><thead><tr><th>단계 ID</th><th>문제 상황</th><th>판정</th><th>반려 유형</th><th>되돌릴 에이전트</th><th>사유</th></tr></thead><tbody></tbody></table></div>
+  <h2>종합</h2>
+  <ul><li>결과: 전체 통과</li><li>반려 대상 에이전트 목록: 없음</li></ul>
+</section>
+
+</main>
+<script>
+// 03 문제 목록: 단계|후보|문제 상황|근거|빈도|영향|원인 가설
+const P=`S0|-|앱 접속 자체가 안 됨 (iOS 업데이트 후)|R06|1|송금을 못 하고 있음|(추정) iOS 업데이트와 앱 버전 간 호환 문제
+S1|-|이체 버튼을 누르고 이체 화면으로 넘어갈 때 로딩이 길고 느림. R29는 같은 리뷰에서 앱이 걸핏하면 꺼진다고도 적음|R10, R29|2|속이 터지고 답답함. R29는 고객센터에 몇 년째 문의해도 고쳐지지 않았다고 적음|(추정) 이체 진입 시 화면 전환 처리 지연
+S4|-|금액 입력 시 숫자 키패드를 누르면 바로 입력되지 않아 여러 번 눌러야 함. 타 은행은 자연스럽게 입력된다고 비교함|R09|1|금액 입력 시 여러 번 누르게 됨|(추정) 키패드 터치 반응 처리 지연
+S4|-|이체 한도 1일 100만원에 걸려 한도를 풀 수 없음 (R24는 직장가입자가 아닌 대학생이라 못 푼다고 적음)|R04, R24|2|100만원 넘게 이체하지 못함. R24는 "코묻은돈 묶어두겠다는 거"라고 불만|(추정) 거래목적 증빙 미제출 계정에 한도 100만원이 적용되는 정책
+S6|-|이체하려 하면 전화인증을 요구하고, 인증 후 메인화면으로 돌아가 다시 이체해도 같은 인증 요구가 반복됨|R20|1|이체를 완료하지 못하고 인증이 반복됨|(추정) 인증 후 이체 화면으로 복귀하지 못하는 이동 오류
+S6|-|내 계좌로 이체하는데도 이것저것 인증을 요구하고 얼굴인증까지 해야 해서 복잡함|R30|1|전 은행 통틀어 제일 복잡하다고 느낌|(추정) 본인 계좌 이체에도 인증이 여러 겹 적용
+확인 필요|S0, S1|앱에 들어가면 홈페이지가 만들다 만 것처럼 이상하게 보여 자금이체를 못 함 (아이폰)|R02|1|자금이체를 못 하고 있음|(추정) 메인 화면 로딩 또는 표시 오류
+확인 필요|S0, S1|메인화면이 뜰 때까지 2분씩 걸림|R12|1|급하게 이체할 일이 있으면 속이 터짐|(추정) 로그인 후 메인 화면 데이터 로딩 지연
+확인 필요|S0, S1|더보기가 클릭이 안 됨 (AI 관련 변경 이후라고 적음)|R05|1|기존 이체 방식이 편했는데 더 짜증나게 바뀌었다고 느낌|(추정) 업데이트로 추가된 기능이 더보기 영역 터치와 충돌
+확인 필요|S2, S3|계좌번호를 직접 입력칸에 붙여넣으면 마지막 숫자 몇 개가 잘림. 복사한 텍스트는 "○○뱅크+계좌번호" 형태였고 다른 앱은 문제없었다고 적음|R27|1|다른 앱보다 불편하게 느낌|(추정) 은행명이 섞인 텍스트 붙여넣기 시 입력 길이 제한 처리
+확인 필요|S7, S8|이체 후 내 계좌에서는 2만원이 빠져나갔는데 친구 계좌에는 입금되지 않음. 계좌 입력 시 이름은 떴다고 적음|R01|1|보낸 돈이 상대에게 도착하지 않음|(추정) 출금 후 입금 처리 지연 또는 실패
+확인 필요|S7, S8|며칠째 이체가 안 됨|R13|1|상담전화 네 통째, 연결이 어려움. 통장에 묶인 돈을 뺄 수 없다고 호소|(추정) 이체 처리 오류가 며칠째 지속
+확인 필요|S1, S4|이체한도가 걸려 있는데 풀 수 없음 / 한도 해제가 까다롭거나 서류 안내 없이 거부됨 (R25는 단계 후보 S4만)|R18, R19, R25|3|송금이 안 됨(R18). 입출금 불균형으로 입금된 돈이 내 돈 같지 않다고 느끼고 일반은행을 추천(R19). 한도 상향 중 내내 화가 남(R25)|(추정) 한도 해제 절차와 안내가 화면에서 이어지지 않음
+확인 필요|S1, S4|이체 제한 때문에 불편함. 이체내역이 없다는 이유로 사용을 제한함|R21, R23|2|불편하고 제한이 심하다고 느낌|(추정) 이용 이력이 적은 계정에 제한이 적용되는 정책
+확인 필요|-|앱이 전반적으로 너무 느림 / 이체나 적금 가입 같은 절차가 느림|R08, R16|2|R08은 돈을 다른 은행으로 모두 이체함|(추정) 앱 전반 또는 이체 절차의 처리 속도 문제`;
+
+// 01 + 02: 리뷰ID|유형코드|01 근거|단계ID|후보|화면요소|02 근거
+const R=`R01|A|"내 계좌에서 이미 돈나가서 없고 내 친구 계좌에도 돈이 안보내졌음" - 이체 결과가 비정상|확인 필요|S7, S8|-|"내 계좌에서 이미 돈나가서 없고 내 친구 계좌에도 돈이 안보내졌음" 은 이체 처리/완료 결과에 대한 언급. S7(처리 중)·S8(완료) 중 어느 화면에서 문제가 보였는지 원문에 없음. "이름도 떴었고"는 S4 받는 사람 표시와 관련되나 불만 지점은 아님
+R02|A|"험페이지만들다만것처럼 이상해서 자금이체를 못하고 있는데" - 화면 깨짐, 기능 사용 불가|확인 필요|S0, S1|-|"앱들어가면 험페이지만들다만것처럼 이상해서 자금이체를 못하고 있는데" 앱 진입 직후 화면 문제. S0(앱 실행·로그인)인지 S1(홈)인지 원문에 없음
+R03|B|"아주편합니다" - 긍정 리뷰, 조작 편의 언급|확인 필요|-|-|"아주편합니다" 특정 단계·화면 요소 언급 없음
+R04|C|"이체 한도 100만원 실화냐" - 한도 규칙 자체에 대한 불만|S4|-|1일 한도 초과 안내 / 이체한도 안내 시트 (예외 요소)|"이체 한도 100만원 실화냐" 와 S4 예외 요소의 한도 시트 사유 문구 "100만원까지만 돈을 보낼 수 있어요" 항목이 대응
+R05|확인 필요|"더보기가 클릭이 안돼요"(A 성격)와 "기존 이체 방식이 편했는데"(B 성격)가 함께 있어 주된 불만 판단이 어려움. A/B 중 후보|확인 필요|S0, S1|-|"더보기가 클릭이 안돼요" 의 더보기는 S0 우상단 더보기(···) 아이콘, S1 계좌 카드 더보기(⋮) 메뉴 둘 다 해당 가능. 어느 화면인지 원문에 없음. "ai 머시기"는 언급만 있고 AI 이체 이용 내용은 없어 범위 외로 빼지 않음
+R06|A|"접속 자체가 안됩니다... 송금을 못 하고 있어요"|S0|-|-|"접속 자체가 안됩니다... 송금을 못 하고 있어요" 앱 접속 단계. S0(앱 실행·로그인). 특정 화면 요소 언급 없음
+R07|B|"편리하고 좋아요. 깔끔해서 좋아요." - 긍정 리뷰, 화면/조작|확인 필요|-|-|"편리하고 좋아요. 깔끔해서 좋아요." 특정 단계·요소 언급 없음
+R08|A|"너무 느립니다 업데이트 한번 해주셔야 할듯요" - 속도|확인 필요|-|-|"너무 느립니다" 어느 단계의 속도인지 원문에 없음
+R09|A|"숫자를 누르면 자연스럽게 바로입력이 안되고 여러번 누르게됩니다" - 입력 반응 문제. B(조작 편의) 성격도 있음|S4|-|숫자 키패드|"이체시 금액을 입력할때 숫자를 누르면 자연스럽게 바로입력이 안되고" 와 S4 금액 입력의 숫자 키패드 항목이 대응
+R10|A|"이체화면으로 넘어갈 때 ... 로딩이 길어요" - 속도|S1|-|이체하기 버튼|"이체화면으로 넘어갈 때 ... 로딩이 길어요" 이체 화면으로 진입하는 시점. S1(이체 진입)의 이체하기 버튼
+R11|B|"이름 두글자 쳤더니 찾아줘서 이체 잘 했어요" - 긍정 리뷰, 조작 편의|범위 외|-|-|AI 이체 ("Ai 이체서비스 좋네요!")
+R12|A|"메인화면 뜰때까지 2분씩이나 걸려요" - 속도|확인 필요|S0, S1|-|"메인화면 뜰때까지 2분씩이나 걸려요" 메인화면이 S1 홈을 가리키는 것으로 보이나 로그인 직후(S0)인지 원문만으로 구분 어려움
+R13|A, E1|"며칠째 이체가 안되고"(A), "상담전화만 네통째. 한번 연결도 엄청 어려움"(E1)|확인 필요|S7, S8|-|"며칠째 이체가 안되고" 이체가 안 되는 시점(처리 중/완료)이 원문에 없음. "통장에 묶인 내 돈"이 계좌 잠김인지도 불명확하여 범위 외로 빼지 않음
+R14|A|"아주빠릅니다" - 긍정 리뷰, 속도|확인 필요|-|-|"아주빠릅니다" 특정 단계 언급 없음
+R15|B|"편라하고 간편해요" - 긍정 리뷰, 조작 편의|확인 필요|-|-|"편라하고 간편해요" 제목 "첫송금"만 있고 단계·요소 언급 없음
+R16|A|"이체나 적금 가입 같은 절차는 느려터짐" - 속도|확인 필요|-|-|"이체나 적금 가입 같은 절차는 느려터짐" 이체 절차 전반으로 특정 단계 없음
+R17|B|"간결하게 되어있어서 너무 좋아요" - 긍정 리뷰, 화면 구조|확인 필요|-|-|"이체를 포함하여 간결하게 되어있어서" 특정 단계·요소 언급 없음
+R18|C|"이체한도는 왜걸려있는거야 풀지도못하는데" - 한도 규칙. "송금까지 안되네"는 한도로 인한 제한으로 봄|확인 필요|S1, S4|-|"이체한도는 왜걸려있는거야 풀지도못하는데"는 S1 한도제한 배지(탭해도 반응 없음) 또는 S4 한도 안내와 연결될 수 있으나 어느 화면인지 원문에 없음. "송금까지 안되네"도 시점 불명
+R19|C|"한도계좌 설정", "1회 이체한도 해제는 서류안내 없이 거부" - 한도/해제 규칙|확인 필요|S1, S4|-|"한도계좌 설정", "1회 이체한도 해제는 서류안내 없이 거부" 한도 해제 절차 언급. 단계표상 S1 한도제한 배지, S4 "통장한도 풀기" 버튼과 관련 가능하나 해제가 이뤄진 화면은 원문에 없음. 이체한도 변경은 단계 ID 없는 "설정" 행
+R20|A|"전화인증하니 메인화면. 다시 이체하려했더니 전화인증하라함" - 인증 후 이체 화면으로 못 가는 반복. B 성격도 있음|S6|-|추가 인증 (전화인증, 예외 요소)|"이체하려했더니 전화인증하라함. 전화인증하니 메인화면" 이체 시도 중 나온 전화 인증. S6 추가 인증 예외 행에 대응
+R21|C|"이체 제한때문에 많이 불편하네요" - 제한 규칙|확인 필요|S1, S4|-|"이체 제한때문에 많이 불편하네요" 제한이 느껴진 화면 언급 없음. 한도제한 배지(S1)·한도 초과 안내(S4) 후보
+R22|A, E1|"보낼때 마다 이상거래탐지로 계좌잠김"(A), "전화는 또 안받음"(E1). 해외송금 건이나 선별 결과대로 분류만 함|범위 외|-|-|해외송금 / 계좌 잠김 ("해외송금이 너무 불편함", "이상거래탐지로 계좌잠김")
+R23|C|"이체내역없다고사용제한하는건좀심한듯" - 제한 기준 규칙|확인 필요|S1, S4|-|"이체내역없다고사용제한하는건" 제한이 보인 화면 언급 없음. 한도제한 배지(S1)·한도 안내(S4) 후보
+R24|C|"대학생이면 이체한도를 풀수없는지", "1일 100만원" - 한도 규칙|S4|-|이체한도 안내 시트 (1일 한도) (예외 요소)|"1일 100만원", "이체한도를 풀수없는지" 와 S4 한도 시트의 1일 한도 표시, "통장한도 풀기" 버튼이 대응
+R25|C|"이체한도 늘리는데 왜이리 까다롭게 해놨는지" - 한도 상향 조건|확인 필요|S4|-|"이체한도 늘리는데 왜이리 까다롭게" 한도 상향 절차. 단계표상 S4 "통장한도 풀기" 버튼이 관련되나 진행 화면은 원문에 없고, 단계표에서 "통장한도 풀기" 이후 절차는 미확인
+R26|E1, C|"고객센터 연결은 참으로 어렵고 ... 콜백 신청해놓고 기약없이 기다려야함"(E1), "증빙으로 요구한 와이프랑 찍은 사진"(C). 해외송금 잠금 건이나 분류만 함|범위 외|-|-|해외송금 / 계좌 잠김 ("해외송금을 정상적으로 신청했을뿐인데 그냥 잠거버림")
+R27|A|"붙여넣기하면 ... 숫자가 마지막몇개가 짤려요", "앱 킬때랑 이용할때 렉"|확인 필요|S2, S3|계좌번호 입력칸|"계좌번호 복사 붙여넣기할때 직접 입력칸에 붙여넣기하면 ... 숫자가 마지막몇개가 짤려요" 계좌번호 입력칸은 S2와 S3 둘 다에 있어 단계 구분 불가. 뒷부분 "앱 킬때랑 이용할때 렉"은 단계 특정 불가
+R28|A|"빠르게 송금이 됬어요" - 긍정 리뷰, 속도|확인 필요|S7, S8|-|"빠르게 송금이 됬어요" 송금 처리/완료 속도로 보이나 화면 언급 없음
+R29|A, E2|"제일 무거움", "걸핏하면 꺼지는"(A), "문의 넣어도 담당부서에게 전달하겠습니다 말하면서 고쳐지지도 않고"(E2)|S1|-|이체하기 버튼|"이체 버튼 누르고 들어가는것만 세월아 네월아" 이체 진입 시점. S1의 이체하기 버튼. "걸핏하면 꺼지는"은 단계 특정 불가
+R30|확인 필요|"이것저것 인증요구... 얼굴인증까지"가 인증 규칙(C)인지 절차 동선(B)인지 원문만으로 구분 어려움. B/C 중 후보|S6|-|생체 인증(Face ID) 오버레이, 추가 인증|"내계좌로 이체하는데 이것저것 인증요구... 얼굴인증까지" 이체 중 인증. S6(인증)의 생체 인증 오버레이와 추가 인증 행에 대응`;
+
+// 04 검수: 단계|문제 상황|판정|반려 유형|되돌릴 에이전트|사유
+const V=`S0|앱 접속 자체가 안 됨 (iOS 업데이트 후)|통과|-|-|R06 존재, 원문 일치. S0 매핑 일치. 원인 (추정) 표기 있음
+S1|이체 진입 로딩 길고 느림 (R10, R29)|통과|-|-|R10, R29 원문 일치(꺼짐, 고객센터 문의도 R29 원문). S1 이체하기 버튼 매핑 일치
+S4|금액 입력 시 키패드 반응 불량|통과|-|-|R09 원문 일치. S4 숫자 키패드 매핑 일치
+S4|1일 100만원 한도, 해제 불가 (R04, R24)|통과|-|-|원문 일치(R24 대학생, 코묻은돈). S4 한도 안내 예외 요소와 02 매핑 일치
+S6|전화인증 반복, 인증 후 메인화면 복귀|통과|-|-|R20 원문 일치. 02의 S6 추가 인증과 일치
+S6|내 계좌 이체에도 인증 다중, 얼굴인증|통과|-|-|R30 원문 일치. 02의 S6 매핑 일치
+확인 필요|홈페이지가 이상하게 보여 자금이체 못 함|통과|-|-|R02 원문 일치. 후보 S0, S1이 02와 동일
+확인 필요|메인화면 2분 소요|통과|-|-|R12 원문 일치. 후보 S0, S1이 02와 동일
+확인 필요|더보기 클릭 안 됨|통과|-|-|R05 원문 일치. 후보 S0, S1이 02와 동일
+확인 필요|계좌번호 붙여넣기 시 마지막 숫자 잘림|통과|-|-|R27 원문 일치. 후보 S2, S3이 02와 동일
+확인 필요|이체 후 출금되었으나 친구 계좌 미입금|통과|-|-|R01 원문 일치. 후보 S7, S8이 02와 동일
+확인 필요|며칠째 이체 안 됨|통과|-|-|R13 원문 일치. 후보 S7, S8이 02와 동일. 영향란의 "묶인 돈"은 R13 원문 표현
+확인 필요|이체한도 해제 불가 또는 까다로움 (R18, R19, R25)|통과|-|-|원문 일치. 후보 S1, S4(R25는 S4만)가 02와 동일, 단계표 ID 범위 내
+확인 필요|이체 제한, 이체내역 없다는 이유의 제한 (R21, R23)|통과|-|-|원문 일치. 후보 S1, S4가 02와 동일
+확인 필요|앱 전반 또는 이체 절차가 느림 (R08, R16)|통과|-|-|R08, R16 원문 일치. 후보 "-"가 02와 동일. 참고: R16 원문은 "앱자체는 빠른데"이나 행에 "/"로 구분해 적어 원문과 어긋나지 않음`;
+
+const rows=s=>s.split('\n').map(l=>l.split('|'));
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const stageCell=s=>s==='확인 필요'||s==='범위 외'?`<span class="need">${s}</span>`:esc(s);
+const chips=s=>s.split(/,\s*/).map(x=>`<span class="chip">${esc(x)}</span>`).join('');
+const PRI=[[11,1],[12,1],[5,1],[1,1],[7,1],[13,2],[4,2],[14,2],[6,3],[10,3],[3,3],[2,3],[8,3],[9,3],[15,3]];
+const P0=rows(P),R_=rows(R),V_=rows(V);
+const P_=PRI.map(([n,p])=>[p+'순위',...P0[n-1]]);
+let idF='';
+
+// 요약
+const cnt={};P0.forEach(r=>cnt[r[0]]=(cnt[r[0]]||0)+1);
+document.querySelector('#stageSum tbody').innerHTML=Object.entries(cnt).map(([k,v])=>`<tr><td>${stageCell(k)}</td><td>${v}</td></tr>`).join('');
+
+// 03
+function fill(sel,id){const s=document.getElementById(id);[...new Set([...(id==='f1'?P0.map(r=>r[0]):R_.map(r=>r[3]))])].forEach(v=>s.add(new Option(v,v)))}
+fill('', 'f1');fill('', 'f2');
+const codes=new Set();R_.forEach(r=>r[1].split(/,\s*/).forEach(c=>codes.add(c)));
+[...codes].sort().forEach(c=>document.getElementById('g2').add(new Option(c,c)));
+
+function r1(){
+  const f=f1.value,q=q1.value.trim();
+  tb1.tBodies[0].innerHTML=P_.filter(r=>(!f||r[1]===f)&&(!q||r.join(' ').includes(q)))
+   .map(r=>`<tr><td style="white-space:nowrap"><b>${r[0]}</b></td><td>${stageCell(r[1])}</td><td>${r[2]==='-'?'-':chips(r[2])}</td><td>${esc(r[3])}</td><td>${r[4].split(/,\s*/).map(x=>`<a href="#" class="chip" data-id="${x}" style="color:var(--acc)">${x}</a>`).join('')}</td><td>${r[5]}</td><td>${esc(r[6])}</td><td>${esc(r[7])}</td></tr>`).join('');
+}
+function r2(){
+  const f=f2.value,g=g2.value,q=q2.value.trim();
+  tb2.tBodies[0].innerHTML=R_.filter(r=>(!idF||r[0]===idF)&&(!f||r[3]===f)&&(!g||r[1].split(/,\s*/).includes(g))&&(!q||r.join(' ').includes(q)))
+   .map(r=>`<tr><td>${r[0]}</td><td>${chips(r[1])}</td><td>${esc(r[2])}</td><td>${stageCell(r[3])}</td><td>${r[4]==='-'?'-':chips(r[4])}</td><td>${esc(r[5])}</td><td>${esc(r[6])}</td></tr>`).join('');
+}
+tb3.tBodies[0].innerHTML=V_.map(r=>`<tr><td>${stageCell(r[0])}</td><td>${esc(r[1])}</td><td class="pass">${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${esc(r[5])}</td></tr>`).join('');
+[f1,q1].forEach(e=>e.addEventListener('input',r1));
+[f2,g2,q2].forEach(e=>e.addEventListener('input',()=>{idF='';r2()}));
+r1();r2();
+
+function go(t){
+  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));
+}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.t==='t2'){idF='';r2()}go(b.dataset.t)}));
+tb1.addEventListener('click',e=>{const a=e.target.closest('a[data-id]');if(!a)return;e.preventDefault();idF=a.dataset.id;f2.value='';g2.value='';q2.value='';r2();go('t2');window.scrollTo(0,0)});
+</script>
+</body>
+</html>
