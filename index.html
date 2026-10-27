@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>송금 VOC 문제 발굴 Agent</title>
+<title>송금 VOC 결과 뷰어</title><!-- 원문 출처: input/voc_raw.md / 분석 데이터: output_run3 -->
+
 <style>
 :root{--bg:#fafaf8;--fg:#1c1c1a;--mut:#6b6b66;--card:#fff;--line:#e2e1db;--acc:#1f5fbf;--ok:#1a7f4b;--warn:#a8641a;--chip:#eef1f6}
 @media (prefers-color-scheme:dark){:root{--bg:#161615;--fg:#ecebe6;--mut:#9a9992;--card:#202020;--line:#35352f;--acc:#7aa7ee;--ok:#5cc58b;--warn:#e0a45a;--chip:#2a2e36}}
@@ -30,6 +31,17 @@ tr:last-child td{border-bottom:0}
 .need{color:var(--warn)}
 h2{font-size:17px;margin:22px 0 6px}
 ul{margin:4px 0;padding-left:20px}
+#tb1 tbody tr{cursor:pointer}
+#tb1 tbody tr:hover{background:var(--chip)}
+#tb1 tbody tr.sel{background:var(--chip);outline:2px solid var(--acc);outline-offset:-2px}
+#detail{margin-top:14px}
+.rv{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+.rv h3{margin:0 0 6px;font-size:15px}
+.rv p{margin:0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.raw{min-width:320px;max-width:520px;color:var(--fg)}
+a.lk{cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px}
+tr.flash td,tr.flash{background:var(--chip);outline:2px solid var(--acc);outline-offset:-2px}
+#back{display:none;margin:0 0 10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
 .stat b{font-size:24px;display:block}
@@ -38,22 +50,19 @@ ul{margin:4px 0;padding-left:20px}
 </head>
 <body>
 <header>
-  <h1>송금 VOC 문제 발굴 Agent · 결과 뷰어</h1>
-  <div class="sub">앱 리뷰 30건(App Store 15, Google Play 15)을 넣으면 송금 단계(S0~S8)별 사용자 문제를 근거 리뷰 ID와 함께 돌려주는 Claude Code 에이전트의 실행 결과입니다. 에이전트는 Claude Code에서 실행했고, 이 페이지는 그 결과 파일(개선 후 실행본)을 보여주는 뷰어입니다.</div>
-  <div class="sub" style="margin-top:4px">개인 포트폴리오 프로젝트이며 케이뱅크와 무관합니다.</div>
+  <h1>송금 VOC 결과 뷰어</h1>
+  <div class="sub">출처: output_run3/01~04 + 리뷰 원문 input/voc_raw.md (R01~R30)</div>
 </header>
 <nav role="tablist">
   <button role="tab" data-t="t0" aria-selected="true">요약</button>
   <button role="tab" data-t="t1" aria-selected="false">문제 목록 (03)</button>
   <button role="tab" data-t="t2" aria-selected="false">리뷰별 분류·매핑 (01·02)</button>
   <button role="tab" data-t="t3" aria-selected="false">검수 결과 (04)</button>
+  <button role="tab" data-t="t4" aria-selected="false">코드·단계 정의</button>
 </nav>
 <main>
 
 <section id="t0" class="on">
-  <h2>처리 흐름</h2>
-  <p class="note" style="font-size:14px;color:var(--fg)">리뷰 30건 → ① 유형 분류 → ② 송금 단계 매핑 (범위 외 분리) → ③ 문제 묶기·원인 추정 → <b>사람 검수 1</b> (채택·우선순위) → ④ 원문 대조 검수 (반려 시 재실행) → <b>사람 검수 2</b> (확정)</p>
-  <p class="note">분류·매핑·묶기·원문 대조는 AI가, 채택·우선순위·확정은 사람이 합니다. 모든 문제에는 근거 리뷰 ID가 있으며, 단계를 특정할 수 없으면 추측하지 않고 "확인 필요"로 남깁니다.</p>
   <div class="cards">
     <div class="stat"><b>30</b><span>분류된 리뷰 (R01~R30)</span></div>
     <div class="stat"><b>27</b><span>매핑 표에 넣은 리뷰</span></div>
@@ -65,15 +74,8 @@ ul{margin:4px 0;padding-left:20px}
   <div class="tw"><table id="stageSum"><thead><tr><th>단계 ID</th><th>행 수</th></tr></thead><tbody></tbody></table></div>
   <h2>사람 검수 1 결과 (03 하단)</h2>
   <ul>
-    <li>채택: 15개 행 전부 채택. 제외·병합 없음 (실행 요청 시 사전 지시).</li>
-    <li>우선순위: 실행 후 사람이 지정. 빈도보다 금융 서비스에서의 피해 크기를 우선함.</li>
-    <li><b>1순위</b> 송금이 끝나지 않거나 돈이 묶임 · <b>2순위</b> 한도·이용 제한 · <b>3순위</b> 지연·입력 불편</li>
-  </ul>
-  <h2>정답셋 채점 (사람이 직접 채점)</h2>
-  <ul>
-    <li>핵심 문제 5개(V1~V5): 문제 상황은 5/5 발견, 단계까지 일치는 3/5</li>
-    <li>개선 내용: 단계표에 한도·인증 예외 화면을 추가 → 한도(V2)·인증 반복(V3)은 맞게 바뀌고, 붙여넣기(V1)는 "확인 필요"로 밀림</li>
-    <li>근거 리뷰 ID 없는 문제 0건</li>
+    <li>사용자가 실행 요청 시 사전 지시: 문제 목록 15개 행 전부 채택. 제외·병합 없음.</li>
+    <li>우선순위: 별도 지정 없음. 표 순서(1~15행)를 그대로 따름.</li>
   </ul>
   <h2>보류 (03)</h2>
   <div class="tw"><table><thead><tr><th>내용</th><th>사유</th></tr></thead><tbody>
@@ -84,12 +86,13 @@ ul{margin:4px 0;padding-left:20px}
 </section>
 
 <section id="t1">
-  <p class="note">우선순위순 정렬 (사람 지정). 원인 가설은 모두 추정. 근거 리뷰 ID를 누르면 해당 리뷰의 분류·매핑 근거로 이동합니다.</p>
+  <p class="note">우선순위 지정 없음. 03 표 순서. 원인 가설은 모두 추정. 단계 "확인 필요" 행의 단계 후보는 참고용입니다. <b>행을 클릭하면 근거 리뷰의 원문 전체가 아래에 표시됩니다.</b></p>
   <div class="tools">
     <select id="f1"><option value="">전체 단계</option></select>
     <input id="q1" type="search" placeholder="검색 (문제 상황, 리뷰 ID…)">
   </div>
-  <div class="tw"><table id="tb1"><thead><tr><th>우선순위</th><th>단계 ID</th><th>단계 후보 (참고)</th><th>문제 상황</th><th>근거 리뷰 ID</th><th>빈도</th><th>영향</th><th>원인 가설(추정)</th></tr></thead><tbody></tbody></table></div>
+  <div class="tw"><table id="tb1"><thead><tr><th>#</th><th>단계 ID</th><th>단계 후보 (참고)</th><th>문제 상황</th><th>근거 리뷰 ID</th><th>빈도</th><th>영향</th><th>원인 가설(추정)</th></tr></thead><tbody></tbody></table></div>
+  <div id="detail"><p class="note">위 표에서 문제 행을 선택하세요.</p></div>
 </section>
 
 <section id="t2">
@@ -99,7 +102,7 @@ ul{margin:4px 0;padding-left:20px}
     <select id="g2"><option value="">전체 유형 코드</option></select>
     <input id="q2" type="search" placeholder="검색 (리뷰 ID, 근거…)">
   </div>
-  <div class="tw"><table id="tb2"><thead><tr><th>리뷰 ID</th><th>유형 코드 (01)</th><th>판단 근거 (01)</th><th>단계 ID (02)</th><th>단계 후보 (참고)</th><th>화면 요소</th><th>매핑 근거 (02)</th></tr></thead><tbody></tbody></table></div>
+  <div class="tw"><table id="tb2"><thead><tr><th>리뷰 ID</th><th class="raw">리뷰 원문 (voc_raw)</th><th>유형 코드 (01)</th><th>판단 근거 (01)</th><th>단계 ID (02)</th><th>단계 후보 (참고)</th><th>화면 요소</th><th>매핑 근거 (02)</th></tr></thead><tbody></tbody></table></div>
 </section>
 
 <section id="t3">
@@ -107,6 +110,48 @@ ul{margin:4px 0;padding-left:20px}
   <div class="tw"><table id="tb3"><thead><tr><th>단계 ID</th><th>문제 상황</th><th>판정</th><th>반려 유형</th><th>되돌릴 에이전트</th><th>사유</th></tr></thead><tbody></tbody></table></div>
   <h2>종합</h2>
   <ul><li>결과: 전체 통과</li><li>반려 대상 에이전트 목록: 없음</li></ul>
+</section>
+
+<section id="t4">
+  <button id="back">← 이전 화면으로 돌아가기</button>
+  <p class="note">출처: input/voc_codes.md, input/transfer_flow.md. 다른 탭의 코드·단계 ID(밑줄 표시)를 누르면 여기로 이동합니다.</p>
+
+  <h2>VOC 분류 코드</h2>
+  <div class="tw"><table><thead><tr><th>축</th><th>코드</th><th>분류</th><th>정의</th></tr></thead><tbody>
+    <tr id="def-A"><td>제품</td><td>A</td><td>기능 안정성</td><td>기능이 정상 작동하는지, 속도와 안정성</td></tr>
+    <tr id="def-B"><td>제품</td><td>B</td><td>사용 흐름</td><td>화면 구조, 동선, 조작 편의</td></tr>
+    <tr id="def-C"><td>제품</td><td>C</td><td>정책, 규칙</td><td>한도, 수수료, 취소 조건 등 규칙 자체</td></tr>
+    <tr id="def-D"><td>사후 대응</td><td>D</td><td>오류 안내</td><td>오류 화면의 원인, 해결법, 복구 시점 안내</td></tr>
+    <tr id="def-E1"><td>사후 대응</td><td>E1</td><td>상담 연결</td><td>상담 채널 접근성</td></tr>
+    <tr id="def-E2"><td>사후 대응</td><td>E2</td><td>상담 해결</td><td>연결 후 답변과 해결 품질</td></tr>
+  </tbody></table></div>
+
+  <h2>송금 플로우 단계 (S0~S8)</h2>
+  <p class="note">출처: 케이뱅크 앱 송금 화면 캡처 10장. 화면에 보이는 정상 경로만 적은 표입니다. 범위 외: 해외송금, AI 이체(S2의 진입 버튼만 표시), 계좌 잠김</p>
+  <div class="tw"><table><thead><tr><th>단계 ID</th><th>단계</th><th>캡처</th><th>화면</th><th>화면 요소 (전수)</th></tr></thead><tbody>
+    <tr id="def-S0"><td>S0</td><td>앱 실행·로그인</td><td>01</td><td>보안 로그인 "간편비밀번호를 입력해주세요"</td><td>우상단 더보기(···) 아이콘, "보안 로그인" 자물쇠 라벨, 간편비밀번호 6자리 입력 표시, "비밀번호를 잊어버렸어요" 버튼, "로그인 상태 유지" 체크박스와 ? 도움말 아이콘, 숫자 키패드(무작위 배열), 얼굴 인증(Face ID) 아이콘 키, 지우기(←) 키</td></tr>
+    <tr id="def-S1"><td>S1</td><td>이체 진입</td><td>02</td><td>홈</td><td>"홈" 타이틀, "사장님" 칩, 알림 벨 아이콘(배지 숫자), 계좌 카드(통장 이름, 계좌번호, 복사 아이콘, 한도제한 배지, 더보기(⋮) 메뉴, 잔액), 가져오기 버튼, 이체하기 버튼, 카드 사용액 배너(넘김 점 표시), 바로가기(내 자산, 자동이체, 자동충전, 편집하기), "내 자산" 영역(편집 버튼, 카드, 내 자산 모두 보기), 하단 탭(홈, 상품, 혜택, 서비스, 전체)</td></tr>
+    <tr id="def-S2"><td>S2</td><td>받는 곳 선택</td><td>03</td><td>"어디로 돈을 보낼까요?"</td><td>뒤로가기, 계좌번호/휴대폰번호 탭, 계좌번호 입력칸, 안내 말풍선 "계좌 순서와 이름을 편집해보세요"(닫기 X), 즐겨찾는 계좌(편집하기, 즐겨찾기 별 표시 계좌 카드, 계좌추가), 내 계좌(다른 은행 계좌 불러오기), "이체를 도와주러 온 AI" 진입 버튼</td></tr>
+    <tr id="def-S3"><td>S3</td><td>계좌·기관 입력</td><td>04, 05</td><td>계좌번호 입력</td><td>뒤로가기, "계좌번호 입력" 라벨, 계좌번호 입력칸, 은행·증권사 선택 드롭다운, 추천 기관 칩(가로 나열), 선택 후 드롭다운에 기관명 표시, 확인 버튼(기관 선택 후 표시)</td></tr>
+    <tr id="def-S4"><td>S4</td><td>금액 입력</td><td>06</td><td>금액 입력</td><td>뒤로가기, 취소, 출금 계좌 표시("케이뱅크(계좌 끝 4자리) 에서"), 받는 사람 표시("기관명 + 실명 님에게"), 입력 금액 표시와 지우기(X) 아이콘, 금액 보조 표기("1만원")와 밑줄 친 금액(라벨 없음), +1만/+10만/+100만/전액 버튼, 숫자 키패드(00 키 포함), 지우기(←) 키, 다음 버튼</td></tr>
+    <tr id="def-S5"><td>S5</td><td>내용 확인</td><td>07</td><td>"OO님에게 N원을 보낼까요?"</td><td>뒤로가기, 취소, 보내는 기관 → 받는 기관 아이콘, 받는 계좌("기관명 계좌번호 로 보내요"), 경고 말풍선 "1년 동안 돈을 보낸 적 없는 계좌예요 계좌번호가 맞는지 한 번 더 확인해주세요"(닫기 X), 받는사람 통장에 표시(편집 아이콘), 내 통장에 표시(편집 아이콘), 보낼 시간 "바로 보낼게요"(편집 아이콘), 부가기능 설정, 보내기 버튼</td></tr>
+    <tr id="def-S6"><td>S6</td><td>인증</td><td>08</td><td>확인 화면 위 인증</td><td>S5 화면 위에 생체 인증(Face ID) 오버레이, 보내기 버튼이 "확인중"으로 바뀜</td></tr>
+    <tr id="def-S7"><td>S7</td><td>처리 중</td><td>09</td><td>"OO님에게 N원을 보내는 중이에요"</td><td>보내는 기관 → 받는 기관 아이콘(진행 화살표), 받는 사람, 금액, 받는 계좌("기관명 계좌번호 로 보내요"). 버튼 없음</td></tr>
+    <tr id="def-S8"><td>S8</td><td>완료</td><td>10</td><td>"OO님에게 N원을 보냈어요"</td><td>출금 푸시 알림(케이뱅크, "출금 N원", 받는 사람 · 통장 이름(계좌 끝 4자리)), 완료 체크 표시, 받는계좌(기관명 계좌번호), 공유 아이콘, "메세지 보내기" 버튼, 안내 말풍선 "돈을 보냈다고 알려주세요"(닫기 X), 의견 남기기 배너("케이뱅크 이체하기 / 고객님의 의견이 궁금해요"), 추가이체 버튼, 확인 버튼</td></tr>
+  </tbody></table></div>
+
+  <h2>예외 요소</h2>
+  <div class="tw"><table><thead><tr><th>단계</th><th>예외 요소</th><th>화면 동작</th><th>근거</th></tr></thead><tbody>
+    <tr><td>S1</td><td>한도제한 배지</td><td>탭해도 반응 없음. 해제 안내·이동 없음</td><td>직접 확인 (2026-10-25)</td></tr>
+    <tr><td>S4</td><td>1일 한도 초과 안내</td><td>한도 초과 금액 입력 시 금액이 빨간색, "하루에 보낼 수 있는 한도를 넘었어요" 표시, "다음" 비활성. 문구의 "한도"에 밑줄(링크)</td><td>S4_한도초과.png</td></tr>
+    <tr><td>S4</td><td>검사 순서</td><td>잔액보다 큰 금액을 넣어도 한도 초과 안내가 표시됨</td><td>S4_한도초과.png</td></tr>
+    <tr><td>S4</td><td>이체한도 안내 시트 ("한도" 링크 탭)</td><td>하단 시트 "내가 보낼 수 있는 이체한도예요". 사유 문구 "거래목적 증빙자료를 제출하지 않아 100만원까지만 돈을 보낼 수 있어요". 계좌잔액·보낼 수 있는 금액·1일 한도(잔여)·1회 한도·1일 연락처 한도·보안 등급 표시. 하단 "통장한도 풀기" 버튼</td><td>S4_한도시트.png</td></tr>
+    <tr><td>설정</td><td>이체한도 변경</td><td>현재 한도(1회·1일) 표시, 변경 입력, 최대 1회 1억·1일 1억 5천만원 안내. 한도제한 계좌는 이 설정과 별도로 100만원 제한이 걸림</td><td>설정_한도변경.png, S4_한도시트.png</td></tr>
+    <tr><td>S6</td><td>추가 인증</td><td>1만원 본인 계좌 이체 시 추가 인증 없음. 추가 인증이 뜨는 조건은 확인 안 됨</td><td>직접 확인 (2026-10-25)</td></tr>
+  </tbody></table></div>
+
+  <h2>확인 안 한 것</h2>
+  <ul><li>"통장한도 풀기" 이후 절차</li><li>이체한도 변경 화면의 진입 경로</li><li>추가 인증(전화·ARS) 화면과 인증 후 이동 화면</li></ul>
 </section>
 
 </main>
@@ -177,46 +222,98 @@ S6|내 계좌 이체에도 인증 다중, 얼굴인증|통과|-|-|R30 원문 일
 확인 필요|이체 제한, 이체내역 없다는 이유의 제한 (R21, R23)|통과|-|-|원문 일치. 후보 S1, S4가 02와 동일
 확인 필요|앱 전반 또는 이체 절차가 느림 (R08, R16)|통과|-|-|R08, R16 원문 일치. 후보 "-"가 02와 동일. 참고: R16 원문은 "앱자체는 빠른데"이나 행에 "/"로 구분해 적어 원문과 어긋나지 않음`;
 
+// input/voc_raw.md 원문 (리뷰 ID → 원문 전체)
+const O=Object.fromEntries(`R01|[ㅋㅋㅋ] 카드가없어서 친구한테 계좌로 돈 보내야하는 일이 생겼는데 2만원을 보냈음 근데 2만원이 증발함ㅋㅋ 내 계좌에서 이미 돈나가서 없고 내 친구 계좌에도 돈이 안보내졌음 분명히 계좌도 똑바로 쳐서 이름도 떴었고 2만원 분명히 보냈는데 사라짐ㅎㅎ ^_^
+R02|[왜 안되요?] 2026.10.09 오후 5시인데 아이폰 케이뱅크 앱들어가면 험페이지만들다만것처럼 이상해서 자금이체를 못하고 있는데 조치바람요
+R03|[이체] 아주편합니다
+R04|[이체 한도 100만원 실화냐] 요구하는게 뭐 이리 많냐 출금도 아니고 이체인데 100만원이 뭐냐
+R05|[ai 머시기 때문에 더보기가 클릭이 안돼요. 더 짜증 나게 바꼈어요.] 왜 이러는 겅가요 기존 이체 방식이 편했는데
+R06|[ios 업뎃 후 접속 안됨] 접속 자체가 안됩니다... 송금을 못 하고 있어요
+R07|[간단이체] 편리하고 좋아요. 깔끔해서 좋아요.
+R08|[너무 느려요] 너무 느립니다 업데이트 한번 해주셔야 할듯요 일단 돈들은 다른 은행으로 다 이체시켰어요 너무 느려서 ~~~~
+R09|[금액입력시 부자연스러움] 이체시 금액을 입력할때 숫자를 누르면 자연스럽게 바로입력이 안되고 여러번 누르게됩니다. 스마트폰의 문제가아닌게 타 은행은 자연스럽게 입력이 됩니다.
+R10|[이체화면 넘어갈 때 느림] 다 좋은데 이체화면으로 넘어갈 때 속터져요 왜이렇게 로딩이 길어요ㅠㅠ
+R11|[Ai 이체서비스 좋네요!] 오랜만에 친구한테 돈 보내려는데 계좌번호 몰라서 이름 두글자 쳤더니 찾아줘서 이체 잘 했어요. 이런 거 많이 만들어주세요~~
+R12|[느려요] 너무 느려요 어쩔때는 메인화면 뜰때까지 2분씩이나 걸려요 급하게 이체할일 있으면 속터집니다
+R13|[은행앱이 이체오류라니…] 며칠째 이체가 안되고 상담전화만 네통째. 한번 연결도 엄청 어려움. 도대체 통장에 묶인 내 돈은 언제 뺄 수 있냐고!!! 돈 돌려줘!!!!!!!!!!
+R14|[이체] 아주빠릅니다
+R15|[첫송금] 편라하고 간편해요
+R16|앱자체는 빠른데 정작 이체나 적금 가입 같은 절차는 느려터짐
+R17|이체를 포함하여 간결하게 되어있어서 너무 좋아요
+R18|이체한도는 왜걸려있는거야 풀지도못하는데 ㅉ 이젠 하다하다 송금까지 안되네~
+R19|인터넷 뱅킹이 계좌만들면 한도계좌 설정해버리고 종이 고지서를 제출하라고 하네, 요즘 종이 고지서를 누가 받나? 한도계좌 설정하려면 입금도 막아야지, 출금만 제한하네. 그냥 일반은행 추천함 입금된 돈은 내돈이 아니네 1회 이체한도 해제는 서류안내 없이 거부하네 공휴일이라 스트레스 엄청받네
+R20|이체하려했더니 전화인증하라함. 전화인증하니 메인화면. 다시 이체하려했더니 전화인증하아함. 전화인증하니 다시 메인화면.
+R21|이체 제한때문에 많이 불편하네요 ㅠㅠ
+R22|해외송금이 너무 불편함 보낼때 마다 이상거래탐지로 계좌잠김 개발자가 능력이 없는건지 얼굴인식은 있으나마나고 매번 상담원 영상통화로 해제해야하는데 전화는 또 안받음ㅋㅋㅋㅋㅋㅋㅋㅋ 어휴
+R23|입출금하는데단지이체내역없다고사용제한하는건좀심한듯.
+R24|다른은행 다되는데 왜 직장가입자가 아닌 대학생이면 이체한도를 풀수없는지 이해가 안가네요 1일 100만원이면 그냥 코묻은돈 묶어두겠다는거 아닌가요?
+R25|이체한도 늘리는데 왜이리 까다롭게 해놨는지ㅠ 하는내내 열받음요ㅜ좀쉽게 하도록 해주세요.
+R26|문제가 생겼을때 해결이 너무 어려움 고객센터 연결은 참으로 어렵고 예약도 아닌 콜백 신청해놓고 기약없이 기다려야함 타이밍 구리게 전화오면 종일 통장이 묶일수있음 크게 교육 당하고 탈출할렵니다. 아내에게 단돈 300만원 해외송금을 정상적으로 신청했을뿐인데 그냥 잠거버림 ㅋㅋㅋ 이상 현재2일동안 돈묶여 카드값 연체될뻔한 후기였습니다. 토스 주식손절 매도해서 예치금 미리받기로 막았네요. 이부분이 좀 빡침니다. 참고로 우리은행으로는 정상적으로 함 상담사님 시원한 빨리 살려주시고 말씀하신데로 탈퇴링크 보내주세요. 하루라도 빨리 시원하게 정리하고 탈퇴하렵니다. 미안하지만 증빙으로 요구한 와이프랑 찍은 사진을 보내달라는 요구는 치가 떨릴정도로 저랑 안맞네요.
+R27|계좌번호 복사 붙여넣기할때 직접 입력칸에 붙여넣기하면 왜인지 숫자가 마지막몇개가 짤려요 복사한 텍스트가 ○○뱅크+계좌번호 형태이긴했는데 다른 앱에서는 붙여넣기하고 이체하는데 문제 없었어서 더 불편하게 느껴져요 그리고 앱 킬때랑 이용할때 렉 걸리고 딜레이가 있어서 답답한면이 있어요 다른기능들보다 앱이 최적화되면 더 좋을것같습니다
+R28|빠르게 송금이 됬어요
+R29|모든 금융앱들중에서 단연코 제일 무거움.... 이체 버튼 누르고 들어가는것만 세월아 네월아에 걸핏하면 꺼지는거 몇 년째 고객센터에 문의 넣어도 담당부서에게 전달하겠습니다 말하면서 고쳐지지도 않고 진심 답답해 죽겠네
+R30|내계좌로 이체하는데 이것저것 인증요구... 얼굴인증까지 전 은행 통틀어 제일 복잡함`.split('\n').map(l=>{const k=l.indexOf('|');return [l.slice(0,k),l.slice(k+1)]}));
+
 const rows=s=>s.split('\n').map(l=>l.split('|'));
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const stageCell=s=>s==='확인 필요'||s==='범위 외'?`<span class="need">${s}</span>`:esc(s);
-const chips=s=>s.split(/,\s*/).map(x=>`<span class="chip">${esc(x)}</span>`).join('');
-const PRI=[[11,1],[12,1],[5,1],[1,1],[7,1],[13,2],[4,2],[14,2],[6,3],[10,3],[3,3],[2,3],[8,3],[9,3],[15,3]];
-const P0=rows(P),R_=rows(R),V_=rows(V);
-const P_=PRI.map(([n,p])=>[p+'순위',...P0[n-1]]);
-let idF='';
+const isDef=x=>/^(A|B|C|D|E1|E2|S[0-8])$/.test(x);
+const lk=x=>`<a class="lk" data-def="${x}" title="${x} 정의 보기">${x}</a>`;
+const stageCell=s=>s==='확인 필요'||s==='범위 외'?`<span class="need">${s}</span>`:isDef(s)?lk(s):esc(s);
+const chips=s=>s.split(/,\s*/).map(x=>`<span class="chip">${isDef(x)?lk(x):esc(x)}</span>`).join('');
+const P_=rows(P),R_=rows(R),V_=rows(V);
 
 // 요약
-const cnt={};P0.forEach(r=>cnt[r[0]]=(cnt[r[0]]||0)+1);
+const cnt={};P_.forEach(r=>cnt[r[0]]=(cnt[r[0]]||0)+1);
 document.querySelector('#stageSum tbody').innerHTML=Object.entries(cnt).map(([k,v])=>`<tr><td>${stageCell(k)}</td><td>${v}</td></tr>`).join('');
 
 // 03
-function fill(sel,id){const s=document.getElementById(id);[...new Set([...(id==='f1'?P0.map(r=>r[0]):R_.map(r=>r[3]))])].forEach(v=>s.add(new Option(v,v)))}
+function fill(sel,id){const s=document.getElementById(id);[...new Set([...(id==='f1'?P_.map(r=>r[0]):R_.map(r=>r[3]))])].forEach(v=>s.add(new Option(v,v)))}
 fill('', 'f1');fill('', 'f2');
 const codes=new Set();R_.forEach(r=>r[1].split(/,\s*/).forEach(c=>codes.add(c)));
 [...codes].sort().forEach(c=>document.getElementById('g2').add(new Option(c,c)));
 
+let sel=-1;
+function showDetail(i){
+  sel=i;const p=P_[i],ids=p[3].split(/,\s*/);
+  const code=Object.fromEntries(R_.map(r=>[r[0],r[1]]));
+  detail.innerHTML=`<h2>${i+1}번 문제 — ${esc(p[2])}</h2><p class="note">근거 리뷰 ${ids.length}건 · 원문 전체</p>`+
+    ids.map(id=>`<div class="rv"><h3>${id} ${chips(code[id]||'')}</h3><p>${esc(O[id]||'(원문 없음)')}</p></div>`).join('');
+  r1();
+}
+tb1.tBodies[0].addEventListener('click',e=>{const tr=e.target.closest('tr');if(tr)showDetail(+tr.dataset.i)});
 function r1(){
   const f=f1.value,q=q1.value.trim();
-  tb1.tBodies[0].innerHTML=P_.filter(r=>(!f||r[1]===f)&&(!q||r.join(' ').includes(q)))
-   .map(r=>`<tr><td style="white-space:nowrap"><b>${r[0]}</b></td><td>${stageCell(r[1])}</td><td>${r[2]==='-'?'-':chips(r[2])}</td><td>${esc(r[3])}</td><td>${r[4].split(/,\s*/).map(x=>`<a href="#" class="chip" data-id="${x}" style="color:var(--acc)">${x}</a>`).join('')}</td><td>${r[5]}</td><td>${esc(r[6])}</td><td>${esc(r[7])}</td></tr>`).join('');
+  tb1.tBodies[0].innerHTML=P_.map((r,i)=>[i+1,...r]).filter(r=>(!f||r[1]===f)&&(!q||r.join(' ').includes(q)))
+   .map(r=>`<tr data-i="${r[0]-1}"${sel===r[0]-1?' class="sel"':''}><td>${r[0]}</td><td>${stageCell(r[1])}</td><td>${r[2]==='-'?'-':chips(r[2])}</td><td>${esc(r[3])}</td><td>${chips(r[4])}</td><td>${r[5]}</td><td>${esc(r[6])}</td><td>${esc(r[7])}</td></tr>`).join('');
 }
 function r2(){
   const f=f2.value,g=g2.value,q=q2.value.trim();
-  tb2.tBodies[0].innerHTML=R_.filter(r=>(!idF||r[0]===idF)&&(!f||r[3]===f)&&(!g||r[1].split(/,\s*/).includes(g))&&(!q||r.join(' ').includes(q)))
-   .map(r=>`<tr><td>${r[0]}</td><td>${chips(r[1])}</td><td>${esc(r[2])}</td><td>${stageCell(r[3])}</td><td>${r[4]==='-'?'-':chips(r[4])}</td><td>${esc(r[5])}</td><td>${esc(r[6])}</td></tr>`).join('');
+  tb2.tBodies[0].innerHTML=R_.filter(r=>(!f||r[3]===f)&&(!g||r[1].split(/,\s*/).includes(g))&&(!q||r.join(' ').includes(q)))
+   .map(r=>`<tr><td>${r[0]}</td><td class="raw">${esc(O[r[0]]||'')}</td><td>${chips(r[1])}</td><td>${esc(r[2])}</td><td>${stageCell(r[3])}</td><td>${r[4]==='-'?'-':chips(r[4])}</td><td>${esc(r[5])}</td><td>${esc(r[6])}</td></tr>`).join('');
 }
 tb3.tBodies[0].innerHTML=V_.map(r=>`<tr><td>${stageCell(r[0])}</td><td>${esc(r[1])}</td><td class="pass">${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${esc(r[5])}</td></tr>`).join('');
 [f1,q1].forEach(e=>e.addEventListener('input',r1));
-[f2,g2,q2].forEach(e=>e.addEventListener('input',()=>{idF='';r2()}));
+[f2,g2,q2].forEach(e=>e.addEventListener('input',r2));
 r1();r2();
 
+let cur='t0',prev=null;
 function go(t){
+  cur=t;
   document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));
   document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));
+  back.style.display=t==='t4'&&prev?'inline-block':'none';
 }
-document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.t==='t2'){idF='';r2()}go(b.dataset.t)}));
-tb1.addEventListener('click',e=>{const a=e.target.closest('a[data-id]');if(!a)return;e.preventDefault();idF=a.dataset.id;f2.value='';g2.value='';q2.value='';r2();go('t2');window.scrollTo(0,0)});
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{prev=null;go(b.dataset.t)}));
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a[data-def]');if(!a)return;
+  e.stopPropagation();
+  if(cur!=='t4')prev={t:cur,y:scrollY};
+  go('t4');
+  const tr=document.getElementById('def-'+a.dataset.def);
+  document.querySelectorAll('tr.flash').forEach(x=>x.classList.remove('flash'));
+  if(tr){tr.classList.add('flash');tr.scrollIntoView({block:'center'})}
+},true);
+back.addEventListener('click',()=>{if(prev){const p=prev;prev=null;go(p.t);scrollTo(0,p.y)}});
 </script>
 </body>
 </html>
